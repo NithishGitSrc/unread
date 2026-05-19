@@ -16,15 +16,15 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public UserEntity registerUser(RegisterUser request) {
-        if (userRepository.existsByMailId(request.getMailId())) {
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
 
         UserEntity user = UserEntity.builder()
                 .name(request.getName())
-                .mailId(request.getMailId())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .provider(UserEntity.AuthProvider.LOCAL)
+                .email(request.getEmail())
+                .password_hash(passwordEncoder.encode(request.getPassword()))
+//                .provider(UserEntity.AuthProvider.LOCAL)
                 .build();
 
         return userRepository.save(user);

@@ -39,11 +39,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 !jwtService.isTokenExpired(jwtToken)
         ) {
             String mailId = jwtService.getMailIdFromToken(jwtToken);
-            UserDetailsService uds = userDetailsService;
+            AuthenticatedUser principal = (AuthenticatedUser) userDetailsService.loadUserByUsername(mailId);
+
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                    uds.loadUserByUsername(mailId),
+                    principal,
                     null,
-                    uds.loadUserByUsername(mailId).getAuthorities()
+                    principal.getAuthorities()
             );
             authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);

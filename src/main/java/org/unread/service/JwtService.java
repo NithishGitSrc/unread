@@ -27,6 +27,18 @@ public class JwtService {
                 .compact();
     }
 
+    public String generateToken(String mailId, Long userId) {
+        HashMap<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
+        return Jwts.builder()
+                .subject(mailId)
+                .addClaims(claims)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 30))
+                .signWith(signedKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
     Key signedKey() {
         return Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
     }
@@ -38,6 +50,11 @@ public class JwtService {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+
+    public Long getUserIdFromToken(String token) {
+        Claims claims = getClaimsFromToken(token);
+        return claims.get("userId", Long.class);
     }
 
     public boolean validateToken(String token) {

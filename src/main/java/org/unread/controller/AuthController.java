@@ -6,7 +6,6 @@ import org.unread.repository.UserRepository;
 
 import org.unread.service.JwtService;
 import org.unread.service.UserService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,11 +26,11 @@ public class AuthController {
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterUser request) {
         try {
             UserEntity user = userService.registerUser(request);
-            String token = jwtService.generateToken(user.getMailId());
+            String token = jwtService.generateToken(user.getEmail());
 
             return ResponseEntity.ok(new AuthResponse(
                     token,
-                    new UserResponse(user.getId().toString(), user.getName(), user.getMailId(), user.getProvider().name())
+                    new UserResponse(user.getId().toString(), user.getName(), user.getEmail(), user.getProvider().name())
             ));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -40,13 +39,16 @@ public class AuthController {
 
 
     @PostMapping("/api/auth/authenticate")
-    String issueJwtToken(@RequestBody AuthRequest authRequest) {
+    public String issueJwtToken(@RequestBody AuthRequest authRequest) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword_hash()));
 
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getMailId(), authRequest.getPassword()));
-
-        if (authentication.isAuthenticated())
-            return jwtService.generateToken(authRequest.getMailId());
-
+        if (authentication.isAuthenticated()) {
+            Long userId = userRepository.findByEmail(authRequest.getEmail())
+                    .orElseThrow(() -> new RuntimeException("User not found"))
+                    .getId();
+            return jwtService.generateToken(authRequest.getEmail(), userId);
+        }
         return null;
     }
 

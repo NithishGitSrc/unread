@@ -9,28 +9,24 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
+@Table(name = "Links")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserEntity {
+public class Links {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column( nullable = false)
-    private String name;
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String url;
 
-    @Column(unique = true, nullable = false)
-    private String email;
-
-    @Column
-    private String password_hash;
+    @Column(name = "url_hash", nullable = false, unique = true, length = 64)
+    private String urlHash;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
-    private LocalDateTime created_at = LocalDateTime.now();
-
+    private LocalDateTime createdAt = LocalDateTime.now();
 }
